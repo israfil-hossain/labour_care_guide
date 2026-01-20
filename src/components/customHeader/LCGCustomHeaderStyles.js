@@ -8,11 +8,19 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 10,
     alignItems: 'center',
-    paddingVertical: 18,
+    paddingVertical: 18
   },
   leftAccessory: {
     alignSelf: 'center',
     color: config.colors.headerLeftIcon,
+  },
+  menuButton: {
+    padding: 8,
+  },
+  menuIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
   },
   rightAccessoryContainer: {alignSelf: 'center'},
   righttAccessoryIcon: {

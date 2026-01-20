@@ -1,24 +1,23 @@
 import React from 'react';
-import {Image} from 'react-native';
 import {Tabs} from 'expo-router';
 import {useDispatch} from 'react-redux';
 import {LCGBottomTabBar} from '../../../src/components';
 import config from '../../../src/config';
 
-const navIcons = {
-  home: require('../../../assets/navicon/home.png'),
-  nurse: require('../../../assets/navicon/nurse.png'),
-  add: require('../../../assets/navicon/add.png'),
-  piechart: require('../../../assets/navicon/piechart.png'),
-  user: require('../../../assets/navicon/user.png'),
-};
+// Import SVG icons as components
+import HomeIcon from '../../../assets/navicon/home.svg';
+import NurseIcon from '../../../assets/navicon/nurse.svg';
+import AddIcon from '../../../assets/navicon/add.svg';
+import PiechartIcon from '../../../assets/navicon/piechart.svg';
+import UserIcon from '../../../assets/navicon/user.svg';
 
-const TabIconComp = (iconSource, tintColor, size = 20) => {
-  return (
-    <Image
-      source={iconSource}
-      style={{width: size, height: size, tintColor}}
-      resizeMode="contain"
+const TabIconComp = (IconComponent, size = 30) => {
+  return ({tintColor, color}) => (
+    <IconComponent
+      width={size}
+      height={size}
+      fill={tintColor || color || config.colors.appTheme1}
+      color={tintColor || color || config.colors.appTheme1}
     />
   );
 };
@@ -44,37 +43,38 @@ export default function TabLayout() {
         name="dashboard"
         options={{
           title: config.screenNames.DASHBOARD_SCREEN,
-          tabBarIcon: ({color}) => TabIconComp(navIcons.home, color),
+          tabBarIcon: TabIconComp(HomeIcon, 30),
         }}
       />
       <Tabs.Screen
         name="patients"
         options={{
           title: config.screenNames.PATIENTS_LIST_SCREEN,
-          tabBarIcon: ({color}) => TabIconComp(navIcons.nurse, color),
+          tabBarIcon: TabIconComp(NurseIcon, 30),
         }}
       />
       <Tabs.Screen
         name="addPatient"
         options={{
           title: config.screenNames.ADD_PATIENT_SCREEN,
-          tabBarIcon: () => TabIconComp(navIcons.add, null, 24),
+          tabBarIcon: TabIconComp(AddIcon, 28),
         }}
       />
       <Tabs.Screen
         name="rounds"
         options={{
           title: config.screenNames.ROUND_SCREEN,
-          tabBarIcon: ({color}) => TabIconComp(navIcons.piechart, color),
+          tabBarIcon: TabIconComp(PiechartIcon, 30),
         }}
       />
       <Tabs.Screen
         name="myAccount"
         options={{
           title: config.screenNames.MY_ACCOUNT_SCREEN,
-          tabBarIcon: ({color}) => TabIconComp(navIcons.user, color),
+          tabBarIcon: TabIconComp(UserIcon, 30),
         }}
       />
     </Tabs>
+    // <MainBottomTab onTabPress={onTabPress} />
   );
 }

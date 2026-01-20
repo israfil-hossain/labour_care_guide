@@ -1,6 +1,10 @@
 // @flow
 import React from "react";
-import { Text, View, SafeAreaView, Pressable, Image } from "react-native";
+import { Text, View, Pressable, Image } from "react-native";
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
+import {DrawerActions} from '@react-navigation/native';
+import MenuIcon from '../../assets/icons/menu.svg';
 import { styles } from "./LCGCustomHeaderStyles";
 import { LCGDivider } from "../divider";
 import { LCGIcon } from "../icon";
@@ -39,7 +43,7 @@ type LCGHomeHeaderProps = {
 const LCGHomeHeader = (props: LCGHomeHeaderProps) => {
   const {
     route,
-    title = "",
+    title = "Appolo Hospital",
     titleLeftAccessory,
     leftAccessoryStyle,
     rightAccessory,
@@ -53,7 +57,16 @@ const LCGHomeHeader = (props: LCGHomeHeaderProps) => {
     onPressRightAccessory,
   } = props;
 
+  const navigation = useNavigation();
   const ProfileStaffResponse = useSelector(ProfileStaff.selectStaffProfile);
+
+  const handleDrawerToggle = () => {
+    if (onPressLeftAccessory) {
+      onPressLeftAccessory();
+    } else {
+      navigation.dispatch(DrawerActions.toggleDrawer());
+    }
+  };
 
 
   const accessoriesData: CVDHeaderAccessoriesTypes[] = [
@@ -82,21 +95,18 @@ const LCGHomeHeader = (props: LCGHomeHeaderProps) => {
   };
 
   return (
-    <SafeAreaView style={styles.layoout}>
+    <SafeAreaView edges={['top']} style={styles.layoout}>
       <View style={styles.container}>
         {accessoriesData[0].isToShow ? (
-          <Pressable onPress={accessoriesData[0].onPress}>
-            <LCGIcon
-              name={accessoriesData[0]?.name ?? ""}
-              style={accessoriesData[0]?.style}
-            />
+          <Pressable onPress={handleDrawerToggle} style={styles.menuButton}>
+            <MenuIcon width={24} height={24} fill={config.colors.appTheme2} />
           </Pressable>
         ) : null}
         <View style={styles.titleWrapper}>
-          {ProfileStaffResponse?.data?.instituteLogo == "" ? (
+          {!ProfileStaffResponse?.data?.instituteLogo ? (
             <Image
               style={styles.hospitalImage}
-              source={require("../../assets/images/Image_Palcaholder.png")}
+              source={require("../../assets/images/appLogo/appLogo.png")}
             />
           ) : (
             <Image
@@ -105,7 +115,7 @@ const LCGHomeHeader = (props: LCGHomeHeaderProps) => {
             />
           )}
           <Text style={styles.hospitalNameText}>
-            {ProfileStaffResponse?.data?.instituteName}
+            {ProfileStaffResponse?.data?.instituteName || "Appolo Hospital"}
           </Text>
           {/* <View style={styles.titleLeftAccessoryContainer}>
             {titleLeftAccessory?.({

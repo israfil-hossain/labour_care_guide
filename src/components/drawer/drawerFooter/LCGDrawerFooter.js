@@ -5,9 +5,6 @@ import {LCGIcon} from '../../icon';
 import config from '../../../config';
 import {LCGDivider} from '../../divider';
 
-type Props = {
-  onPressAddInstitute?: Function,
-};
 
 const LCGDrawerFooter = (props) => {
   const {onPressAddInstitute} = props;

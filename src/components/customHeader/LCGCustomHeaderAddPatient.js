@@ -1,6 +1,7 @@
 // @flow
 import React, {useEffect} from 'react';
-import {Text, View, SafeAreaView, Pressable} from 'react-native';
+import {Text, View, Pressable} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {styles} from './LCGCustomHeaderStyles';
 import {LCGDivider} from '../divider';
 import {LCGIcon} from '../icon';
@@ -66,7 +67,7 @@ const LCGCustomHeaderAddPatient = (props: LCGCustomHeaderAddPatientProps) => {
   };
 
   return (
-    <SafeAreaView style={styles.layoout}>
+    <SafeAreaView edges={['top']} style={styles.layoout}>
       <View style={styles.container}>
         {accessoriesData[0].isToShow ? (
           <Pressable onPress={accessoriesData[0].onPress}>

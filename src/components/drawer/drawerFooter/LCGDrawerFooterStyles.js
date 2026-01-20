@@ -3,7 +3,8 @@ import config from '../../../config';
 
 export const styles = StyleSheet.create({
   container: {
-    paddingBottom: 15,
+    padding: 15,
+    paddingBottom: 25,
     backgroundColor: 'transparent',
   },
   addInstituteContainer: {

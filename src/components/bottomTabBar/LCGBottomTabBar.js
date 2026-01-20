@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
-import {View, Text, Pressable, SafeAreaView} from 'react-native';
+import {View, Text, Pressable} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {styles} from './LCGBottomTabBarStyles';
 import config from '../../config';
 
@@ -136,7 +137,7 @@ const LCGBottomTabBar = ({
   };
 
   return (
-    <SafeAreaView style={newStyles.layout}>
+    <SafeAreaView edges={['bottom']} style={newStyles.layout}>
       <View style={newStyles.container}>
         <View style={newStyles.tabsWrapper}>
           {state?.routes.map((route, index) => {

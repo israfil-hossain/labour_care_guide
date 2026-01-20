@@ -4,17 +4,13 @@ import config from '../../../config';
 import {styles} from './LCGDrawerHeaderStyles';
 import {LCGIcon} from '../../icon';
 
-type Props = {
-  title?: string,
-  onIconPress?: Function,
-};
 
 const LCGDrawerHeader = (props) => {
-  const {title = config.strings.OTHERS.INSTITUTE_HEADING, onIconPress} = props;
+  const {title = config.strings.OTHERS.INSTITUTE_HEADING , onIconPress} = props;
 
   return (
     <View style={styles.container}>
-      
+      <Text style={styles.titleLabel} numberOfLines={3}>{title}</Text>
       <TouchableOpacity
         disabled={!onIconPress}
         onPress={() => onIconPress?.()}
@@ -25,6 +21,7 @@ const LCGDrawerHeader = (props) => {
           color={config.colors.white}
           size={14}
         />
+       
       </TouchableOpacity>
     </View>
   );

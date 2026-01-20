@@ -3,8 +3,10 @@ import config from '../../../config';
 
 export const styles = StyleSheet.create({
   container: {
+
     paddingHorizontal: 15,
-    paddingTop: 15,
+    paddingTop: 55,
+    paddingBottom : 35,
     backgroundColor: config.colors.appTheme1,
     flexDirection: 'row',
    justifyContent:'flex-end',
@@ -12,8 +14,8 @@ export const styles = StyleSheet.create({
   titleLabel: {
     flex: 1,
     fontFamily: config.fontFamily.LATO_BOLD_700,
-    fontSize: 20,
-    lineHeight: 24,
+    fontSize: 22,
+    lineHeight: 50,
     color: config.colors.white,
   },
   iconContainer: {

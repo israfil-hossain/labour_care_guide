@@ -1,10 +1,11 @@
 import { StyleSheet } from "react-native";
 import config from "../../config";
+const Constants = require('expo-constants');
 
 export const styles = StyleSheet.create({
-  layout: { flex: 1, backgroundColor: config.colors.white },
+  layout: { flex: 1, backgroundColor: config.colors.white , paddingTop: Constants.statusBarHeight},
   dutyStausView: {
-    marginVertical: 5,
+    marginVertical: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     marginHorizontal: 12,

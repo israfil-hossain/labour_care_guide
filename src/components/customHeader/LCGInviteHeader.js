@@ -5,11 +5,11 @@ import React, {useEffect} from 'react';
 import {
   Text,
   View,
-  SafeAreaView,
   Pressable,
   StyleSheet,
   Image,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {styles} from './LCGCustomHeaderStyles';
 import {LCGDivider} from '../divider';
 import {LCGIcon} from '../icon';
@@ -75,7 +75,7 @@ const LCGInviteHeader = (props: LCGInviteHeaderProps) => {
   };
 
   return (
-    <SafeAreaView style={styles.layoout}>
+    <SafeAreaView edges={['top']} style={styles.layoout}>
       <View style={localStyle.head}>
         <View
           style={{

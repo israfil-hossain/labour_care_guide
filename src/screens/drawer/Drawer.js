@@ -27,7 +27,7 @@ import { User, DutyStatus, NotfStatus, ProfileStaff } from "../../reduxStates";
 import Constants from 'expo-constants';
 
 const DrawerContent = (
-  props: React.ElementConfig<typeof DrawerContentComponentProps>
+  props
 ) => {
   const dispatch = useDispatch();
   const [status, setStatus] = React.useState(false);
@@ -79,7 +79,7 @@ const DrawerContent = (
 
   return (
     <SafeAreaView style={styles.layout}>
-      <LCGDrawerHeader onIconPress={onDotIconPress} />
+      <LCGDrawerHeader onIconPress={onDotIconPress} title={"Appolo Hospital"}/>
       <DrawerContentScrollView
         {...props}
         automaticallyAdjustContentInsets={false}

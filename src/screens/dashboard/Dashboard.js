@@ -9,7 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { styles } from "./DashboardStyles";
-import { LCGButton, LCGHomeHeader } from "../../components";
+import { LCGButton } from "../../components";
 import config from "../../config";
 import { CommonUtils, EnumUtils } from "../../utils";
 import WelcomeTag from "../../components/WelcomeTag";
@@ -23,9 +23,10 @@ import {
 } from "../../reduxStates";
 import Constants from 'expo-constants';
 import NotificationService from "../notifications/NotificationService";
-import { DrawerActions } from "@react-navigation/native";
+import { DrawerActions, useNavigation } from "@react-navigation/native";
 
-const Dashboard = ({ navigation }) => {
+const Dashboard = ({ navigation: propNavigation }) => {
+  const navigation = useNavigation();
   const [dashData, setDashData] = useState([]);
   const { showToast } = CommonUtils;
   const { toastTypes } = EnumUtils;
@@ -92,16 +93,14 @@ const Dashboard = ({ navigation }) => {
   };
 
   const openDrawer = () => {
-    navigation?.dispatch(DrawerActions.openDrawer());
+    const parent = navigation.getParent();
+    if (parent) {
+      parent.dispatch(DrawerActions.openDrawer());
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <LCGHomeHeader
-        leftAccessoryName={config.iconNames.SIDE_MENU}
-        onPressLeftAccessory={openDrawer}
-        isToShowTitle={false}
-      />
       <WelcomeTag
         userName={`${ProfileStaffResponse?.data?.firstName} ${ProfileStaffResponse?.data?.lastName}`}
       />

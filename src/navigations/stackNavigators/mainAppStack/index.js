@@ -101,7 +101,6 @@ export const DashboardStack = ({ navigation }) => {
               <LCGHomeHeader
                 route={route}
                 isAddPatients={false}
-                onPressLeftAccessory={() => navigation.openDrawer()}
                 onPressRightAccessory={() =>
                   navigation.navigate(config.routes.NOTIFICATION_LIST)
                 }
@@ -126,7 +125,7 @@ export const DashboardStack = ({ navigation }) => {
         })}
       />
 
-      <DashboardStackNav.Screen
+      {/* <DashboardStackNav.Screen
         name={config.routes.NOTIFICATION_LIST}
         component={NotificationList}
         options={({ route }) => ({
@@ -155,7 +154,7 @@ export const DashboardStack = ({ navigation }) => {
             );
           },
         })}
-      />
+      /> */}
 
       {getCommonStacks(navigation)}
     </DashboardStackNav.Navigator>
@@ -216,7 +215,6 @@ export const PatientsStack = ({ navigation }) => {
             return (
               <LCGHomeHeader
                 route={route}
-                onPressLeftAccessory={() => navigation.openDrawer()}
                 onPressRightAccessory={() =>
                   navigation.navigate(config.routes.NOTIFICATION_LIST)
                 }
@@ -834,7 +832,6 @@ export const RoundsStack = ({ navigation }) => {
             return (
               <LCGHomeHeader
                 route={route}
-                onPressLeftAccessory={() => navigation.openDrawer()}
                 onPressAddPatient={() =>
                   navigation.navigate(routes.ADD_PATIENT)
                 }
@@ -1124,7 +1121,6 @@ export const MyAccountStack = ({ navigation }) => {
             return (
               <LCGHomeHeader
                 route={route}
-                onPressLeftAccessory={() => navigation.openDrawer()}
                 onPressAddPatient={() =>
                   navigation.navigate(routes.ADD_PATIENT)
                 }
