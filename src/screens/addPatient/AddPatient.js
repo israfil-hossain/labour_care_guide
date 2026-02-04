@@ -111,9 +111,9 @@ const AddPatient = ({ navigation, route }) => {
   const { showToast } = CommonUtils;
   const { toastTypes } = EnumUtils;
 
-  const [onesetFormDate, setOnesetFormDate] = useState();
-  const [activeLabFormDate, setActiveLabFormDate] = useState();
-  const [membFormDate, setMembFormDate] = useState();
+  const [onesetFormDate, setOnesetFormDate] = useState(new Date());
+  const [activeLabFormDate, setActiveLabFormDate] = useState(new Date());
+  const [membFormDate, setMembFormDate] = useState(new Date());
   const [hourUpdate, setHourUpdate] = useState();
   const [minUpdate, setMinUpdate] = useState();
 
@@ -839,12 +839,14 @@ const AddPatient = ({ navigation, route }) => {
   const formatTime = (_time) => {
     const formattedDate = moment(_time, "HH:mm").format("hh:mm A");
     setOnsetTime(formattedDate);
-    const d = new Date(_time);
-    d.getHours();
-    const setd = new Date(onesetFormDate);
-    setd.setHours(d.getHours());
-    setd.setMinutes(d.getMinutes());
-    setOnesetFormDate(setd);
+    if (onesetFormDate) {
+      const d = new Date(_time);
+      d.getHours();
+      const setd = new Date(onesetFormDate);
+      setd.setHours(d.getHours());
+      setd.setMinutes(d.getMinutes());
+      setOnesetFormDate(setd);
+    }
   };
 
   const showReptureDatePicker = () => {
@@ -882,12 +884,14 @@ const AddPatient = ({ navigation, route }) => {
   const formatTimeRepture = (_time) => {
     const formattedDate = moment(_time, "HH:mm").format("hh:mm A");
     setReptureTime(formattedDate);
-    const d = new Date(_time);
-    d.getHours();
-    const setd = new Date(membFormDate);
-    setd.setHours(d.getHours());
-    setd.setMinutes(d.getMinutes());
-    setMembFormDate(setd);
+    if (membFormDate) {
+      const d = new Date(_time);
+      d.getHours();
+      const setd = new Date(membFormDate);
+      setd.setHours(d.getHours());
+      setd.setMinutes(d.getMinutes());
+      setMembFormDate(setd);
+    }
   };
 
   const showLabourDatePicker = () => {
@@ -925,12 +929,14 @@ const AddPatient = ({ navigation, route }) => {
   const formatTimeLabour = (_time) => {
     const formattedDate = moment(_time, "HH:mm").format("hh:mm A");
     setLabourTime(formattedDate);
-    const d = new Date(_time);
-    d.getHours();
-    const setd = new Date(activeLabFormDate);
-    setd.setHours(d.getHours());
-    setd.setMinutes(d.getMinutes());
-    setActiveLabFormDate(setd);
+    if (activeLabFormDate) {
+      const d = new Date(_time);
+      d.getHours();
+      const setd = new Date(activeLabFormDate);
+      setd.setHours(d.getHours());
+      setd.setMinutes(d.getMinutes());
+      setActiveLabFormDate(setd);
+    }
   };
 
   const showAdmissionDatePicker = () => {
@@ -1491,10 +1497,10 @@ const AddPatient = ({ navigation, route }) => {
                 <DateTimePickerModal
                   isVisible={show}
                   mode="date"
+                  date={onesetFormDate}
                   onConfirm={handleConfirm}
                   onCancel={hideDatePicker}
                   maximumDate={new Date()}
-                  minimumDate={new Date()}
                 />
 
                 <View style={styles.timeView} />
@@ -1522,6 +1528,7 @@ const AddPatient = ({ navigation, route }) => {
                 <DateTimePickerModal
                   isVisible={showTime}
                   mode="time"
+                  date={onesetFormDate}
                   onConfirm={handleConfirmTime}
                   onCancel={hideTimePicker}
                 />
@@ -1593,10 +1600,10 @@ const AddPatient = ({ navigation, route }) => {
                 <DateTimePickerModal
                   isVisible={showLabourDate}
                   mode="date"
+                  date={activeLabFormDate}
                   onConfirm={handleConfirmLabour}
                   onCancel={hideLabourDatePicker}
                   maximumDate={new Date()}
-                  minimumDate={new Date()}
                 />
 
                 <View style={styles.timeView} />
@@ -1624,6 +1631,7 @@ const AddPatient = ({ navigation, route }) => {
                 <DateTimePickerModal
                   isVisible={showLabourTime}
                   mode="time"
+                  date={activeLabFormDate}
                   onConfirm={handleConfirmTimeLabour}
                   onCancel={hideLabourTimePicker}
                 />
@@ -1695,10 +1703,10 @@ const AddPatient = ({ navigation, route }) => {
                 <DateTimePickerModal
                   isVisible={showRepture}
                   mode="date"
+                  date={membFormDate}
                   onConfirm={handleConfirmRepture}
                   onCancel={hideReptureDatePicker}
                   maximumDate={new Date()}
-                  minimumDate={new Date()}
                 />
 
                 <View style={styles.timeView} />
@@ -1726,6 +1734,7 @@ const AddPatient = ({ navigation, route }) => {
                 <DateTimePickerModal
                   isVisible={showReptureTime}
                   mode="time"
+                  date={membFormDate}
                   onConfirm={handleConfirmTimeRepture}
                   onCancel={hideReptureTimePicker}
                 />
@@ -1830,6 +1839,7 @@ const AddPatient = ({ navigation, route }) => {
             <DateTimePickerModal
               isVisible={showAdmissionDate}
               mode="date"
+              date={new Date()}
               onConfirm={handleConfirmAdmission}
               onCancel={hideAdmissionDatePicker}
             />

@@ -2,7 +2,6 @@ import { combineReducers } from "@reduxjs/toolkit";
 import * as UI from "./UI";
 import * as User from "./User";
 import * as AddPateint from "./AddPatients";
-import * as ListWards from "./ListWard";
 import * as ListPateints from "./PatientList";
 import * as SearchPatient from "./PatientSearch";
 import * as SortPatientList from "./SortPatients";
@@ -12,7 +11,6 @@ import * as WardAssign from "./AssignWard";
 import * as PatientTransfer from "./TransferPatient";
 import * as DeclarePatient from "./DeclarePatient";
 import * as DischargePatient from "./DischargePatient";
-import * as SearchWard from "./SearchWard";
 import * as ListStaff from "./ListStaff";
 import * as StaffSearch from "./SearchStaff";
 import * as FilterStaff from "./FilterStaff";
@@ -55,7 +53,6 @@ const reducers = combineReducers({
   ui: UI.uiSliceReducer,
   user: User.userSliceReducer,
   pateintAdd: AddPateint.AddPateintSliceReducer,
-  listWards: ListWards.WardListSliceReducer,
   listPateints: ListPateints.PatientListSliceReducer,
   searchPatient: SearchPatient.PatientSearchSliceReducer,
   sortPatientList: SortPatientList.SortPatientListSliceReducer,
@@ -65,7 +62,6 @@ const reducers = combineReducers({
   patientTransfer: PatientTransfer.TransferPatientSliceReducer,
   declarePatient: DeclarePatient.DeclarePatientSliceReducer,
   dischargePatient: DischargePatient.DischargePatientSliceReducer,
-  searchWard: SearchWard.WardSearchSliceReducer,
   listStaff: ListStaff.StaffListSliceReducer,
   staffSearch: StaffSearch.StaffSearchSliceReducer,
   filterStaff: FilterStaff.StaffFilterSliceReducer,
@@ -110,7 +106,6 @@ export {
   UI,
   User,
   AddPateint,
-  ListWards,
   ListPateints,
   SearchPatient,
   SortPatientList,
@@ -120,7 +115,6 @@ export {
   PatientTransfer,
   DeclarePatient,
   DischargePatient,
-  SearchWard,
   ListStaff,
   FilterStaff,
   StaffSearch,

@@ -7,7 +7,7 @@ import {
   View,
   TouchableOpacity,
   Modal,
-  FlatList,
+  ScrollView,
 } from "react-native";
 import config from "../../config";
 
@@ -21,13 +21,13 @@ const LCGDropDown = ({
   if (dropVisible) {
     return (
       <View style={[styles.containerStyle, viewStyle]}>
-        <FlatList
-          data={listData}
+        <ScrollView
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
-          renderItem={renderContent}
-        />
+        >
+          {listData && listData.map((item, index) => renderContent({ item, index }))}
+        </ScrollView>
       </View>
     );
   } else return null;

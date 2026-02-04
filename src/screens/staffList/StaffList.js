@@ -13,7 +13,7 @@ import {
   Linking,
 } from "react-native";
 import config from "../../config";
-import CardView from '../../components/CardView';
+import CardView from "../../components/CardView";
 import fontFamily from "../../config/fontFamily";
 import WardCard from "../../components/WardCard";
 import StaffCard from "../../components/StaffCard";
@@ -43,7 +43,6 @@ const StaffList = ({ navigation }) => {
   const StaffPaginatedData = useSelector(ListStaff.selectStaffPaginated);
   const SearchStaffData = useSelector(StaffSearch.selectStaffSearch);
   const FilterStaffData = useSelector(FilterStaff.selectfilterStaff);
-  
 
   useEffect(() => {
     if (StaffPaginatedData?.length > 0) {
@@ -117,7 +116,7 @@ const StaffList = ({ navigation }) => {
     if (searchValue == "" && sortOption == "") {
       if (StaffListData?.data?.pagination?.hasNextPage == true) {
         dispatch(
-          saveStaffPageNum(StaffListData?.data?.pagination?.currentPage + 1)
+          saveStaffPageNum(StaffListData?.data?.pagination?.currentPage + 1),
         );
         const payload = {
           uri: `?page=${StaffListData?.data?.pagination?.currentPage + 1}`,
@@ -314,6 +313,10 @@ const StaffList = ({ navigation }) => {
           />
         ) : (
           <View style={styles.noFoundView}>
+            <Image
+              source={require("../../assets/images/no_stuff_found.png")}
+              style={{ width: 200, height: 200, resizeMode: "contain" }}
+            />
             <Text>{config.strings.OTHERS.NO_STAFF}</Text>
           </View>
         )}

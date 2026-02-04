@@ -1,12 +1,12 @@
 import {Redirect} from 'expo-router';
 import React from 'react';
-import {useSelector} from 'react-redux';
-import {User, UI} from '../src/reduxStates';
 import {View, Text, StyleSheet} from 'react-native';
+import useAuthStore from '../src/stores/useAuthStore';
+import useUIStore from '../src/stores/useUIStore';
 
 export default function Index() {
-  const isUserLoggedIn = useSelector(User.selectIsUserLoggedIn);
-  const isSplashLoading = useSelector(UI.selectIsSplashLoading);
+  const { isAuthenticated } = useAuthStore();
+  const { isSplashLoading } = useUIStore();
 
   // Show splash screen while loading
   if (isSplashLoading) {
@@ -18,7 +18,7 @@ export default function Index() {
   }
 
   // Redirect based on authentication status
-  if (isUserLoggedIn) {
+  if (isAuthenticated) {
     return <Redirect href="/(app)" />;
   }
 

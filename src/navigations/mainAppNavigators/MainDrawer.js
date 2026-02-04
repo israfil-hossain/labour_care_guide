@@ -3,7 +3,7 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import MainBottomTab from './MainBottomTab';
 import config from '../../config';
 import {styles} from '../NavigationsStyles';
-import {Drawer} from '../../screens';
+import {Drawer, Profile, ChangePassword} from '../../screens';
 
 
 const DrawerNav = createDrawerNavigator();
@@ -19,7 +19,14 @@ const MainDrawer = () => (
       name={config.routes.MAIN_BOTTOM_TAB}
       component={MainBottomTab}
     />
-   
+    <DrawerNav.Screen
+      name={config.routes.PROFILE}
+      component={Profile}
+    />
+    <DrawerNav.Screen
+      name={config.routes.CHANGE_PASSWORD}
+      component={ChangePassword}
+    />
   </DrawerNav.Navigator>
 );
 

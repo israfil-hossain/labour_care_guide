@@ -15,6 +15,7 @@ import {
   DrawerContentScrollView,
 } from "@react-navigation/drawer";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "expo-router";
 import {
   LCGDrawerHeader,
   LCGDrawerCell,
@@ -25,15 +26,18 @@ import { styles } from "./DrawerStyles";
 import config from "../../config";
 import { User, DutyStatus, NotfStatus, ProfileStaff } from "../../reduxStates";
 import Constants from 'expo-constants';
+import { useLogout } from "../../hooks/useAuth";
 
 const DrawerContent = (
   props
 ) => {
   const dispatch = useDispatch();
+  const router = useRouter();
   const [status, setStatus] = React.useState(false);
   const [notfStatus, setNotfStatus] = React.useState(true);
 
   const ProfileStaffResponse = useSelector(ProfileStaff.selectStaffProfile);
+  const { mutate: logout } = useLogout();
 
 
   React.useEffect(() => {
@@ -51,10 +55,9 @@ const DrawerContent = (
     props.navigation.closeDrawer();
   };
 
-  const onLogoutPress = async () => {
-    // logic for logging out user from app
+  const onLogoutPress = () => {
     props.navigation.closeDrawer();
-    dispatch(User.signOutAction());
+    logout();
   };
 
   const callDutyStatusToggleApi = () => {
@@ -116,7 +119,10 @@ const DrawerContent = (
         </View>
 
         <TouchableOpacity
-          onPress={() => props?.navigation?.navigate(config.routes.PROFILE)}
+          onPress={() => {
+            props.navigation.closeDrawer();
+            router.push('/(app)/profile');
+          }}
           style={styles.drawaerOptionContainer}
         >
           <View style={styles.toggleSubView}>
@@ -139,9 +145,10 @@ const DrawerContent = (
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() =>
-            props?.navigation?.navigate(config.routes.CHANGE_PASSWORD)
-          }
+          onPress={() => {
+            props.navigation.closeDrawer();
+            router.push('/(app)/changePassword');
+          }}
           style={styles.drawaerOptionContainer}
         >
           <View style={styles.toggleSubView}>

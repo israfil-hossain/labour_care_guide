@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Image,
@@ -15,12 +15,10 @@ import {
   LCGCenterModal,
 } from "../../components";
 import config from "../../config";
-import { useDispatch, useSelector } from "react-redux";
-import { User, ResetPasword } from "../../reduxStates";
 import { CommonUtils, EnumUtils } from "../../utils";
+import { useResetPassword } from "../../hooks/useAuth";
 
 const ResetPassword = ({ navigation, route }) => {
-  const [otpCode, setOtpCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confPassword, setConfPassword] = useState("");
   const [newPassSecure, setNewPassSecure] = useState(true);
@@ -29,33 +27,7 @@ const ResetPassword = ({ navigation, route }) => {
   const { showToast } = CommonUtils;
   const { toastTypes } = EnumUtils;
 
-  const dispatch = useDispatch();
-
-  //Selectors
-  const PasswordResetResponse = useSelector(ResetPasword.selectResetPass);
-  const PasswordResErrorResponse = useSelector(
-    ResetPasword.selectResetPassResponse
-  );
-
-  useEffect(() => {
-    if (PasswordResetResponse?.success == true) {
-      showToast({
-        type: toastTypes.SUCCESS,
-        text2: PasswordResetResponse?.message,
-      });
-      navigation.navigate(config.routes.LOGIN);
-    }
-  }, [PasswordResetResponse]);
-
-  useEffect(() => {
-    if (PasswordResErrorResponse?.status == false) {
-      showToast({
-        type: toastTypes.WARNING,
-        text2: PasswordResErrorResponse?.message,
-      });
-      dispatch(ResetPasword.removeResetPassResponse());
-    }
-  }, [PasswordResErrorResponse]);
+  const { mutate: resetPassword, isPending } = useResetPassword();
 
   const onPressSubmit = () => {
     if (newPassword == "" || newPassword.length < 3) {
@@ -68,26 +40,19 @@ const ResetPassword = ({ navigation, route }) => {
         type: toastTypes.WARNING,
         text2: config.strings.VALIDATION_MSG.CONFIRM_PASSWORD,
       });
-    } else if (otpCode == "" || otpCode.length < 4) {
-      showToast({
-        type: toastTypes.WARNING,
-        text2: config.strings.VALIDATION_MSG.ENTER_VALIDOTP,
-      });
     } else {
-      callResetPasswordApi();
+      resetPassword(
+        {
+          password: newPassword,
+          confirmPassword: confPassword,
+        },
+        {
+          onSuccess: () => {
+            navigation.navigate(config.routes.LOGIN);
+          },
+        }
+      );
     }
-  };
-
-  const callResetPasswordApi = () => {
-    const payload = {
-      email: route?.params?.emailUser,
-      otp: otpCode,
-      password: newPassword,
-    };
-    dispatch({
-      type: "RESET_PASSWORD",
-      payload,
-    });
   };
 
   return (
@@ -139,24 +104,13 @@ const ResetPassword = ({ navigation, route }) => {
             labelText={config.strings.TEXT_INPUT_LABELS.CONFIRM_PASSWORD_LABEL}
           />
 
-          <LCGTextInput
-            containerStyle={styles.passwordContainer}
-            onChangeText={(text) => setOtpCode(text)}
-            textInputProps={{
-              value: otpCode,
-              placeholder: config.strings.TEXT_INPUT_PLACEHOLDERS.OTP,
-              keyboardType: config.keyboardTypes.NUMBER_PAD,
-              returnKeyType: config.returnKeyTypes.DONE,
-              maxLength: 4,
-            }}
-            labelText={config.strings.OTHERS.OTP_SCREEN_HEADING}
-          />
         </View>
 
         <LCGButton
           containerStyle={styles.buttonContainer}
           buttonText={config.strings.BTN_TEXTS.SUBMIT_BTN_TEXT}
           onPress={() => onPressSubmit()}
+          disabled={isPending}
         />
       </LCGKeyboardAvoidingAnimatedScroll>
     </SafeAreaView>

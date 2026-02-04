@@ -1,4 +1,5 @@
-import CardView from "../../components/CardView";import React, { useEffect, useState, useRef } from "react";
+import CardView from "../../components/CardView";
+import React, { useEffect, useState, useRef } from "react";
 import {
   SafeAreaView,
   Text,
@@ -18,25 +19,10 @@ import fontFamily from "../../config/fontFamily";
 import routes from "../../config/routes";
 import PatientsCard from "../../components/PatientsCard";
 import config from "../../config";
-import {
-  User,
-  ListWards,
-  ListPateints,
-  SearchPatient,
-  SortPatientList,
-  HighRiskPatient,
-  AddPateint,
-  AlertHideToggle,
-  ProfileStaff,
-} from "../../reduxStates";
-import { useDispatch, useSelector } from "react-redux";
+import { usePatients, useSearchPatients, useToggleHighRisk } from "../../hooks/usePatients";
+import { useProfile } from "../../hooks/useAuth";
+import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  savePatientFilterOption,
-  savePatientPageNumber,
-} from "../../reduxStates/PatientList";
-import Constants from 'expo-constants';
-import { saveHideAlertStatus } from "../../reduxStates/ToggleAlertHide";
 
 const ORDER = 1;
 
@@ -47,135 +33,57 @@ const PatientsList = ({ navigation, route }) => {
   const [sortOption, setSortOption] = useState("");
   const [menuShow, setShowMenu] = useState(false);
   const [hideAlert, setHideAlert] = useState(false);
-  const [patientList, setPatientsList] = useState([]);
-  const [filterOption, setFilterOption] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [selectPatientID, setSelectPatientID] = useState("");
   const [patientDetail, setPatientDetail] = useState();
   const [riskStatus, setRiskStatus] = useState();
-
-  const dispatch = useDispatch();
-  const PatientListData = useSelector(ListPateints.selectPatientList);
-  const PaginatedPatientList = useSelector(
-    ListPateints.selectPaginatedListPatient
-  );
-  const SearchPatientData = useSelector(SearchPatient.selectSearchPatient);
-  const SortPatientData = useSelector(SortPatientList.selectSortPatient);
-  const HighRiskData = useSelector(HighRiskPatient.selectHighRisk);
-  const WardID = useSelector(ListWards.selectIdWard);
-  const OptionFilter = useSelector(ListPateints.selectOptionFilter);
-  const AlertHideResponse = useSelector(AlertHideToggle.selectAlertHide);
-  const ProfileStaffResponse = useSelector(ProfileStaff.selectStaffProfile);
-
- 
+  const [filterOption, setFilterOption] = useState("");
+  const [page, setPage] = useState(1);
+  const [wardId, setWardId] = useState(null);
 
   const scrollViewRef = useRef();
 
-  useEffect(() => {
-    if (HighRiskData?.success == true) {
-      callPatientListApi();
+  // React Query hooks
+  const { data: patientsData, isLoading, refetch } = usePatients(
+    {
+      filterBy: filterOption || undefined,
+      filterValue: filterOption ? "true" : undefined,
+      page,
+      wardId: wardId || undefined,
     }
-  }, [HighRiskData]);
+  );
 
-  useEffect(() => {
-    callPatientListApi();
-  }, []);
+  const { data: profileData } = useProfile();
 
+  // Search hook - separate query to avoid conflicts
+  const { data: searchResults, refetch: refetchSearch } = useSearchPatients(
+    { search: searchValue },
+    { enabled: false }
+  );
+
+  const { mutate: toggleHighRisk } = useToggleHighRisk();
+
+  // Fetch patients on filter/page/ward changes
   useEffect(() => {
-    if (AlertHideResponse?.success == true) {
-      callProfileStaffApi();
+    if (!searchValue) {
+      refetch();
     }
-  }, [AlertHideResponse]);
+  }, [filterOption, page, wardId]);
 
+  // Debounced search
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {});
-    // Return the function to unsubscribe from the event so it gets removed on unmount
-    return () => {
-      unsubscribe;
-      dispatch(saveHideAlertStatus(null));
-    };
-  }, [navigation]);
+    const timeoutId = setTimeout(() => {
+      if (searchValue) {
+        refetchSearch();
+      }
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchValue]);
 
-  useEffect(() => {
-    if (SortPatientData?.data?.patients?.length > 0) {
-      setPatientsList(SortPatientData?.data?.patients);
-    }
-  }, [SortPatientData]);
-
-  useEffect(() => {
-    if (SearchPatientData?.length > 0) {
-      setPatientsList(SearchPatientData);
-    } else {
-      setPatientsList([]);
-    }
-  }, [SearchPatientData]);
-
-  useEffect(() => {
-    if (PaginatedPatientList?.length > 0) {
-      setPatientsList(PaginatedPatientList);
-    } else {
-      setPatientsList([]);
-    }
-  }, [PaginatedPatientList]);
-
-  useEffect(() => {
-    callPatientListApiOnFilter();
-    setSearchValue("");
-  }, [OptionFilter]);
-
-  useEffect(() => {
-    if (WardID != null) {
-      const payload = {
-        uri: `list?filterBy=${OptionFilter}&filterValue=true&wardId=${WardID}`,
-      };
-      dispatch({
-        type: "PATEINT_LIST",
-        payload,
-      });
-    } else {
-      const payload = {
-        uri: `list?filterBy=${OptionFilter}&filterValue=true&page=${
-          PatientListData?.data?.pagination?.currentPage
-        }`,
-      };
-      dispatch({
-        type: "PATEINT_LIST",
-        payload,
-      });
-    }
-  }, [WardID]);
-
-  const callPatientListApi = () => {
-    const payload = {
-      uri: `list?filterBy=${OptionFilter}&filterValue=true&page=${
-        PatientListData?.data?.pagination?.currentPage
-      }`,
-    };
-    dispatch({
-      type: "PATEINT_LIST",
-      payload,
-    });
-  };
-
-  const callPatientListApiOnFilter = () => {
-    if (WardID != null) {
-      const payload = {
-        uri: `list?filterBy=${OptionFilter}&filterValue=true&wardId=${WardID}`,
-      };
-      dispatch({
-        type: "PATEINT_LIST",
-        payload,
-      });
-    } else {
-      const payload = {
-        uri: `list?filterBy=${OptionFilter}&filterValue=true`,
-      };
-      dispatch({
-        type: "PATEINT_LIST",
-        payload,
-      });
-    }
-  };
+  // Get patient list from data - use search results if searching, otherwise use normal results
+  const patientList = searchValue
+    ? (searchResults?.data?.patients || [])
+    : (patientsData?.data?.patients || []);
 
   const onPressEditPatient = () => {
     setShowMenu(false);
@@ -198,22 +106,19 @@ const PatientsList = ({ navigation, route }) => {
   };
 
   const onPressTopMenuOtpions = (type) => {
+    setPage(1); // Reset to page 1 when changing filters
     if (type == "ALL") {
       setmenuOption(1);
       setFilterOption("");
-      dispatch(savePatientFilterOption(""));
     } else if (type == "RISK") {
       setmenuOption(2);
       setFilterOption("RISK");
-      dispatch(savePatientFilterOption("RISK"));
     } else if (type == "LABOUR") {
       setmenuOption(3);
       setFilterOption("LABOUR");
-      dispatch(savePatientFilterOption("LABOUR"));
     } else if (type == "COMPLETED") {
       setmenuOption(4);
       setFilterOption("COMPLETED");
-      dispatch(savePatientFilterOption("COMPLETED"));
     }
   };
 
@@ -221,17 +126,8 @@ const PatientsList = ({ navigation, route }) => {
     setSearchValue(_text);
     if (_text == null) {
       setSearchValue("");
-    } else {
-      const payload = {
-        uri: `list?search=${_text}&filterBy=${OptionFilter}&filterValue=true`,
-      };
-      setTimeout(() => {
-        dispatch({
-          type: "SEARCH_PATIENT",
-          payload,
-        });
-      }, 2000);
     }
+    // Refetch is handled by useEffect with debounce
   };
 
   const onPressResetButton = () => {
@@ -240,13 +136,8 @@ const PatientsList = ({ navigation, route }) => {
 
   const onPressApplyButton = () => {
     setSortVisible(false);
-    const payload = {
-      uri: `list?filterBy=${OptionFilter}&filterValue=true&orderBy=${sortOption}&orderIn=${ORDER}`,
-    };
-    dispatch({
-      type: "SORT_PATIENT_LIST",
-      payload,
-    });
+    // TODO: Implement sorting with React Query
+    console.log("Sort by:", sortOption);
   };
 
   const onPressHideFutureAlert = () => {
@@ -254,40 +145,22 @@ const PatientsList = ({ navigation, route }) => {
   };
 
   const onPressYes = async () => {
-    const payload = {
-      uri: `${selectPatientID}`,
-    };
-    dispatch({
-      type: "HIGH_RISK_PATIENT",
-      payload,
-    });
-    callTogleAlertHide();
+    toggleHighRisk({ patientId: selectPatientID });
     setIsVisible(false);
+    // TODO: Implement toggle alert hide
   };
 
   const callTogleAlertHide = () => {
-    const payload = {
-      uri: `${hideAlert}`,
-    };
-    dispatch({
-      type: "TOGGLE_ALERT_HIDE",
-      payload,
-    });
+    // TODO: Implement with React Query
   };
 
   const onFlagPress = (patientID, statusRisk) => {
     setSelectPatientID(patientID);
     setRiskStatus(statusRisk);
-    if (ProfileStaffResponse?.data?.isHighRiskAlertHide == false) {
+    if (profileData?.data?.isHighRiskAlertHide == false) {
       setIsVisible(true);
     } else {
-      const payload = {
-        uri: `${patientID}`,
-      };
-      dispatch({
-        type: "HIGH_RISK_PATIENT",
-        payload,
-      });
+      toggleHighRisk({ patientId: patientID });
     }
   };
 
@@ -298,16 +171,9 @@ const PatientsList = ({ navigation, route }) => {
   };
 
   const fetchMoreData = () => {
-    if (PatientListData?.data?.pagination?.totalItems > patientList?.length) {
-      const payload = {
-        uri: `list?filterBy=${OptionFilter}&filterValue=true&page=${
-          PatientListData?.data?.pagination?.currentPage + 1
-        }`,
-      };
-      dispatch({
-        type: "PATEINT_LIST",
-        payload,
-      });
+    const totalItems = patientsData?.data?.pagination?.totalItems || 0;
+    if (totalItems > patientList?.length) {
+      setPage(prev => prev + 1);
     }
   };
 
@@ -317,20 +183,15 @@ const PatientsList = ({ navigation, route }) => {
   };
 
   const onPressClearFilter = () => {
-    dispatch(ListWards.saveWardIdSelected(null));
-    dispatch(savePatientFilterOption(""));
+    setWardId(null);
+    setFilterOption("");
     setmenuOption(1);
+    setPage(1);
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   const callProfileStaffApi = () => {
-    const payload = {
-      uri: `?udid=${Constants.deviceId || Constants.installationId}`,
-    };
-    dispatch({
-      type: "STAFF_PROFILE",
-      payload,
-    });
+    // Profile is now fetched via React Query useProfile hook
   };
 
   return (
@@ -451,7 +312,7 @@ const PatientsList = ({ navigation, route }) => {
           </CardView>
         </View>
 
-        {WardID != null && (
+        {wardId != null && (
           <Pressable
             onPress={() => onPressClearFilter()}
             style={local.clearFilterView}
@@ -599,6 +460,10 @@ const PatientsList = ({ navigation, route }) => {
           <View
             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
           >
+            <Image
+              source={require("../../assets/images/no_patient_found.png")}
+              style={{ width: 200, height: 200, resizeMode: "contain" }}
+            />
             <Text style={local.menuOptionModalText}>No Patients found.</Text>
           </View>
         )}

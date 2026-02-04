@@ -1,6 +1,5 @@
 import React from 'react';
 import {Tabs} from 'expo-router';
-import {useDispatch} from 'react-redux';
 import {LCGBottomTabBar} from '../../../src/components';
 import config from '../../../src/config';
 
@@ -23,11 +22,10 @@ const TabIconComp = (IconComponent, size = 30) => {
 };
 
 export default function TabLayout() {
-  const dispatch = useDispatch();
-
   const onTabPress = (route, index) => {
     if (route?.name === 'addPatient' && index === 2) {
-      dispatch({type: 'clearRegisterPatientForm'});
+      // TODO: Clear form state when migrating addPatient screen
+      console.log('Clear add patient form');
     }
   };
 
@@ -75,6 +73,5 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-    // <MainBottomTab onTabPress={onTabPress} />
   );
 }

@@ -1,108 +1,138 @@
-import CardView from "../../components/CardView";/* eslint-disable react/self-closing-comp */
-import React, { useEffect, useState } from "react";
+import CardView from "../../components/CardView";
+import React, { useEffect, useState, useMemo } from "react";
 import {
-  SafeAreaView,
   Text,
   View,
-  Dimensions,
   Image,
   TextInput,
-  ScrollView,
   StyleSheet,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import config from "../../config";
-
 import fontFamily from "../../config/fontFamily";
 import WardCard from "../../components/WardCard";
-import { useDispatch, useSelector } from "react-redux";
-import { User, ListWards, SearchWard } from "../../reduxStates";
-import { CommonUtils, EnumUtils } from "../../utils";
+import { useInfiniteWards, useSearchWards } from "../../hooks/useWards";
+import Toast from "react-native-toast-message";
 
-const { width, height } = Dimensions.get("screen");
-
-const WardsList = ({ navigation, route }) => {
-  const [wardList, setWardList] = useState([]);
+const WardsList = ({ navigation }) => {
   const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const dispatch = useDispatch();
+  // Infinite scroll query for main list
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isLoadingInfinite,
+    error: infiniteError,
+    refetch: refetchInfinite,
+  } = useInfiniteWards({}, { enabled: !debouncedSearch });
 
-  //Selectors
-  const Listward = useSelector(ListWards.selectWardsList);
-  const SearchWardData = useSelector(SearchWard.selectWardListData);
-  const PaginatedWardList = useSelector(ListWards.selectWardListPaginated);
+  // Search query
+  const {
+    data: searchData,
+    isLoading: isLoadingSearch,
+    error: searchError,
+  } = useSearchWards(debouncedSearch, { enabled: !!debouncedSearch });
 
-  const { showToast } = CommonUtils;
-  const { toastTypes } = EnumUtils;
-
+  // Debounce search input
   useEffect(() => {
-    if (SearchWardData?.length > 0) {
-      setWardList(SearchWardData);
-    } else {
-      setWardList([]);
-    }
-  }, [SearchWardData]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 500);
 
+    return () => clearTimeout(timer);
+  }, [searchValue]);
+
+  // Show errors
   useEffect(() => {
-    if (PaginatedWardList?.length > 0) {
-      setWardList(PaginatedWardList);
-    } else {
-      setWardList([]);
+    const error = infiniteError || searchError;
+    if (error) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.message || "Failed to load wards",
+      });
     }
-  }, [PaginatedWardList]);
+  }, [infiniteError, searchError]);
 
-  useEffect(() => {
-    callWardListApi();
-  }, []);
-
-  const callWardListApi = () => {
-    const payload = {
-      uri: `list?page=${Listward?.data?.pagination?.currentPage}`,
-    };
-    dispatch({
-      type: "WARD_LIST",
-      payload,
-    });
-  };
-
-  const searchWard = (_text) => {
-    setSearchValue(_text);
-    if (_text == null) {
-      setSearchValue("");
+  // Prepare ward list data
+  const wardList = useMemo(() => {
+    if (debouncedSearch) {
+      // Return search results
+      return searchData?.data?.docs || [];
     } else {
-      const payload = {
-        uri: `list?search=${_text}`,
-      };
-      setTimeout(() => {
-        dispatch({
-          type: "SEARCH_WARD",
-          payload,
-        });
-      }, 2000);
+      // Flatten infinite scroll pages
+      const pages = infiniteData?.pages || [];
+      return pages.flatMap((page) => page.data?.docs || []);
     }
-  };
+  }, [infiniteData, searchData, debouncedSearch]);
 
-  const onPressOption = (wardID) => {
-    dispatch(ListWards.saveWardIdSelected(wardID));
+  const isLoading = debouncedSearch ? isLoadingSearch : isLoadingInfinite;
+
+  const onPressOption = () => {
+    // Navigate to patients list
     navigation.navigate(config.routes.PATIENTS_LIST_STACK);
     navigation.goBack();
   };
 
-  const fetchMoreData = () => {
-    if (Listward?.data?.pagination?.totalItems > wardList?.length) {
-      const payload = {
-        uri: `list?page=${Listward?.data?.pagination?.currentPage + 1}`,
-      };
-      dispatch({
-        type: "WARD_LIST",
-        payload,
-      });
+  const handleEndReached = () => {
+    if (!debouncedSearch && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
+  };
+
+  const handleRefresh = () => {
+    if (debouncedSearch) {
+      // For search, we don't have a specific refresh, but the query will auto-update
+      setDebouncedSearch("");
+      setSearchValue("");
+    } else {
+      refetchInfinite();
+    }
+  };
+
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={config.colors.primary} />
+      </View>
+    );
+  };
+
+  const renderEmpty = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={config.colors.primary} />
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.noFoundView}>
+        <Image
+          source={require("../../assets/images/no_patient_found.png")}
+          style={styles.emptyImage}
+          resizeMode="contain"
+        />
+        <Text style={styles.emptyText}>
+          {debouncedSearch
+            ? "No wards found for your search"
+            : config.strings.OTHERS.NO_WARD || "No wards found"}
+        </Text>
+      </View>
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.cardConatiner}>
+        {/* Search Input */}
         <View>
           <CardView
             cardElevation={1}
@@ -120,40 +150,39 @@ const WardsList = ({ navigation, route }) => {
                 placeholder="Search Wards"
                 autoCorrect={false}
                 autoCapitalize="none"
-                onChangeText={(val) => searchWard(val)}
+                onChangeText={(val) => setSearchValue(val)}
                 value={searchValue}
               />
             </View>
           </CardView>
         </View>
 
-        {wardList && wardList?.length > 0 ? (
-          <View style={styles.scrolSubContainer}>
-            <FlatList
-              data={wardList}
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              keyExtractor={(item, index) => index.toString()}
-              onEndReached={fetchMoreData}
-              onEndReachedThreshold={0.001}
-              renderItem={({ item }) => {
-                return (
-                  <WardCard
-                    title={item?.name}
-                    count={item?.totalPatient}
-                    navigation={navigation}
-                    idWard={item?.wardId}
-                    onPressOption={() => onPressOption(item?.wardId)}
-                  />
-                );
-              }}
-            />
-          </View>
-        ) : (
-          <View style={styles.noFoundView}>
-            <Text>{config.strings.OTHERS.NO_WARD}</Text>
-          </View>
-        )}
+        {/* Ward List */}
+        <View style={styles.scrolSubContainer}>
+          <FlatList
+            data={wardList}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.3}
+            onRefresh={handleRefresh}
+            refreshing={isLoading && wardList.length === 0}
+            ListFooterComponent={renderFooter}
+            ListEmptyComponent={renderEmpty}
+            renderItem={({ item }) => {
+              return (
+                <WardCard
+                  title={item?.name}
+                  count={item?.numOfPatients}
+                  navigation={navigation}
+                  idWard={item?.id}
+                  onPressOption={() => onPressOption(item?.id)}
+                />
+              );
+            }}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -188,10 +217,6 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     width: "100%",
   },
-  scrollContainer: {
-    flex: 1,
-    paddingTop: 10,
-  },
   scrolSubContainer: {
     flex: 1,
   },
@@ -200,6 +225,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginVertical: 30,
+  },
+  emptyImage: {
+    width: 200,
+    height: 200,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 50,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: "center",
   },
 });
 

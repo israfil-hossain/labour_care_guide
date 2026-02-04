@@ -2,14 +2,12 @@ import Reactotron, {
   trackGlobalErrors,
   networking,
 } from 'reactotron-react-native';
-import sagaPlugin from 'reactotron-redux-saga';
 import {reactotronRedux} from 'reactotron-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import local from './src/config/local';
 
 let reactotronConfig = null;
-let sagasMonitor;
 if (process.env.NODE_ENV !== 'production') {
   /* If you have tethered an iOS device to your development machine and have deployed
    * your React Native app (in DEBUG mode) to the device, Reactotron needs to know the
@@ -36,7 +34,6 @@ if (process.env.NODE_ENV !== 'production') {
         ignoreUrls: /\/(logs|symbolicate)$/,
       }),
     )
-    .use(sagaPlugin())
     .use(reactotronRedux());
 
   if (local?.enableReactrotronLogs) {
@@ -46,9 +43,7 @@ if (process.env.NODE_ENV !== 'production') {
 
   Reactotron.connect(); // Connect with reactotron
   Reactotron.clear(); // Clear the logs.
-  sagasMonitor = Reactotron.createSagaMonitor();
 }
 const reactotron = reactotronConfig;
-const sagaMonitor = sagasMonitor;
 
-export {sagaMonitor, reactotron};
+export {reactotron};

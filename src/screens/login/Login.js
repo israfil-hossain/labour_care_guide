@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Image,
@@ -16,10 +16,8 @@ import {
   LCGCenterModal,
 } from "../../components";
 import config from "../../config";
-import { useDispatch, useSelector } from "react-redux";
-import { User } from "../../reduxStates";
 import { CommonUtils, EnumUtils } from "../../utils";
-import { authClient } from "../../lib/auth-client";
+import { useLogin } from "../../hooks/useAuth";
 
 
 const Login = ({ navigation }) => {
@@ -29,24 +27,13 @@ const Login = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [isSecurePassword, setIsSecurePassword] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
-  const dispatch = useDispatch();
 
   const { showToast } = CommonUtils;
   const { toastTypes } = EnumUtils;
 
-  const UserResponse = useSelector(User.selectUserErrorResponse);
+  const { mutate: login, isPending } = useLogin();
 
-  useEffect(() => {
-    if (UserResponse?.status == false) {
-      showToast({
-        type: toastTypes.WARNING,
-        text2: UserResponse?.message,
-      });
-      dispatch(User.removeLoginResponse());
-    }
-  }, [UserResponse]);
-
-  const onLoginBtnPress = async () => {
+  const onLoginBtnPress = () => {
     const validEmail = validateEmail();
     if (email == "" || validEmail != true) {
       showToast({
@@ -59,43 +46,7 @@ const Login = ({ navigation }) => {
         text2: config.strings.VALIDATION_MSG.ENTER_PASSWORD,
       });
     } else {
-      try {
-        const response = await authClient.signIn.email({
-          email,
-          password,
-        });
-
-        console.log("Login response:", JSON.stringify(response, null, 2));
-
-        if (response.error) {
-          showToast({
-            type: toastTypes.WARNING,
-            text2: response.error.message || "Login failed. Please try again.",
-          });
-        } else if (response.data) {
-          // Serialize user data (convert Date objects to ISO strings for Redux)
-          const serializedUser = {
-            ...response.data.user,
-            createdAt: response.data.user.createdAt?.toString(),
-            updatedAt: response.data.user.updatedAt?.toString(),
-          };
-
-          // Save user data and token to Redux
-          dispatch(User.saveUserLogin(serializedUser));
-
-          // Better Auth stores token automatically, we just need to set a flag
-          // Use user ID as the auth token indicator since better-auth handles token storage
-          dispatch(User.saveUserAuthToken(response.data.user?.id || "authenticated"));
-
-          console.log("User logged in, should navigate now");
-        }
-      } catch (error) {
-        console.error("Login error:", error);
-        showToast({
-          type: toastTypes.WARNING,
-          text2: error.message || "An error occurred during login. Please try again.",
-        });
-      }
+      login({ email, password });
     }
   };
 
@@ -195,6 +146,7 @@ const Login = ({ navigation }) => {
             containerStyle={styles.buttonContainer}
             buttonText={config.strings.BTN_TEXTS.LOGIN_BTN_TEXT}
             onPress={onLoginBtnPress}
+            disabled={isPending}
           />
 
           <View style={styles.orTextMainWrapper}>

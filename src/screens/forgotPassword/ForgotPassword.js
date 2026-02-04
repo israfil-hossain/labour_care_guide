@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Image,
@@ -16,8 +16,7 @@ import {
 } from "../../components";
 import config from "../../config";
 import { CommonUtils, EnumUtils } from "../../utils";
-import { useDispatch, useSelector } from "react-redux";
-import { User, SendOtp, PasswordForget } from "../../reduxStates";
+import { useForgotPassword } from "../../hooks/useAuth";
 
 const ForgotPassowrd = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -26,27 +25,7 @@ const ForgotPassowrd = ({ navigation }) => {
   const { showToast } = CommonUtils;
   const { toastTypes } = EnumUtils;
 
-  const dispatch = useDispatch();
-  const ForgetPassResponse = useSelector(PasswordForget.selectForgetPass);
-  const ForgetPassErrorResponse = useSelector(
-    PasswordForget.selectForgetPassResponse
-  );
-
-  useEffect(() => {
-    if (ForgetPassResponse?.success == true) {
-      setIsVisible(true);
-    }
-  }, [ForgetPassResponse]);
-
-  useEffect(() => {
-    if (ForgetPassErrorResponse?.status == false) {
-      showToast({
-        type: toastTypes.WARNING,
-        text2: ForgetPassErrorResponse?.message,
-      });
-      dispatch(PasswordForget.removePassForgotResponse());
-    }
-  }, [ForgetPassErrorResponse]);
+  const { mutate: forgotPassword, isPending } = useForgotPassword();
 
   const onPressSubmit = () => {
     const validEmail = validateEmail();
@@ -56,7 +35,14 @@ const ForgotPassowrd = ({ navigation }) => {
         text2: config.strings.VALIDATION_MSG.ENTER_EMAIL,
       });
     } else {
-      callForgetPassApi();
+      forgotPassword(
+        { email },
+        {
+          onSuccess: () => {
+            setIsVisible(true);
+          },
+        }
+      );
     }
   };
 
@@ -67,16 +53,6 @@ const ForgotPassowrd = ({ navigation }) => {
     } else {
       return true;
     }
-  };
-
-  const callForgetPassApi = () => {
-    const payload = {
-      email: email,
-    };
-    dispatch({
-      type: "FORGOT_PASSWORD",
-      payload,
-    });
   };
 
   const onCloseModal = () => {
@@ -118,6 +94,7 @@ const ForgotPassowrd = ({ navigation }) => {
           containerStyle={styles.buttonContainer}
           buttonText={config.strings.BTN_TEXTS.SUBMIT_BTN_TEXT}
           onPress={() => onPressSubmit()}
+          disabled={isPending}
         />
 
         <LCGCenterModal

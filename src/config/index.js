@@ -1,5 +1,4 @@
 import local from './local';
-import {store} from './store';
 import environment from './environments/env.json';
 import routes from './routes';
 import strings from './strings';
@@ -32,7 +31,6 @@ const apiBaseUrl = environment?.API_URL ?? '';
 const config = {
   ...local,
   apiBaseUrl,
-  store,
   routes,
   strings,
   screenNames,

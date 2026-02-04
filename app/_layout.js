@@ -1,28 +1,30 @@
 import 'react-native-gesture-handler';
 import '../polyfills';
 import React, {useEffect} from 'react';
-import {Provider, useDispatch, useSelector} from 'react-redux';
+import {Provider} from 'react-redux';
 import {Slot, useRouter, useSegments, SplashScreen} from 'expo-router';
 import {StatusBar} from 'expo-status-bar';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {useFonts} from 'expo-font';
 import NetInfo from '@react-native-community/netinfo';
 import {LCGLoader, LCGToast} from '../src/components';
-import {UI, User} from '../src/reduxStates';
 import {CommonUtils, EnumUtils, ErrorBoundary} from '../src/utils';
 import config from '../src/config';
+import {QueryProvider} from '../src/providers/QueryProvider';
+import useAuthStore from '../src/stores/useAuthStore';
+import useUIStore from '../src/stores/useUIStore';
+import {store} from '../src/config/store';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 // Initial Layout with Providers
 function RootLayoutNav() {
-  const dispatch = useDispatch();
   const router = useRouter();
   const segments = useSegments();
 
-  const isUserLoggedIn = useSelector(User.selectIsUserLoggedIn);
-  const isSplashLoading = useSelector(UI.selectIsSplashLoading);
+  const { isAuthenticated } = useAuthStore();
+  const { isSplashLoading, changeInternetConnectivityState, saveIsSplashLoading } = useUIStore();
 
   // Load fonts
   const [fontsLoaded, fontError] = useFonts({
@@ -43,7 +45,7 @@ function RootLayoutNav() {
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
       const {isConnected} = state;
-      dispatch(UI.changeInternetConnectivityState(isConnected));
+      changeInternetConnectivityState(isConnected);
       if (isConnected === false) {
         CommonUtils.showToast({
           type: EnumUtils.toastTypes.WARNING,
@@ -55,16 +57,16 @@ function RootLayoutNav() {
     return () => {
       unsubscribe();
     };
-  }, [dispatch]);
+  }, [changeInternetConnectivityState]);
 
-  // Handle splash screen
+  // Handle splash screen - hide after delay
   useEffect(() => {
-    if (isSplashLoading) {
-      setTimeout(() => {
-        dispatch(UI.saveIsSplashLoading(false));
-      }, 1500);
-    }
-  }, [isSplashLoading, dispatch]);
+    const timer = setTimeout(() => {
+      saveIsSplashLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle authentication routing
   useEffect(() => {
@@ -72,14 +74,14 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    if (!isUserLoggedIn && !inAuthGroup) {
+    if (!isAuthenticated && !inAuthGroup) {
       // Redirect to auth if not logged in
       router.replace('/(auth)/login');
-    } else if (isUserLoggedIn && inAuthGroup) {
+    } else if (isAuthenticated && inAuthGroup) {
       // Redirect to app if logged in
       router.replace('/(app)');
     }
-  }, [isUserLoggedIn, segments, isSplashLoading, router]);
+  }, [isAuthenticated, segments, isSplashLoading, router]);
 
   // Handle font loading - hide splash screen when fonts are loaded
   useEffect(() => {
@@ -107,9 +109,11 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
-        <Provider store={config.store}>
-          <RootLayoutNav />
-        </Provider>
+        <QueryProvider>
+          <Provider store={store}>
+            <RootLayoutNav />
+          </Provider>
+        </QueryProvider>
       </SafeAreaProvider>
     </ErrorBoundary>
   );
